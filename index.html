@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yihang Hu · Data Science</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --border: #1e1e2e;
+    --accent: #7c6af7;
+    --accent2: #f7a76c;
+    --text: #e8e6f0;
+    --muted: #6b6880;
+    --serif: 'DM Serif Display', serif;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── Grid Background ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Nav ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 3rem;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  .nav-links { display: flex; gap: 2rem; }
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 0 3rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .hero-inner { max-width: 720px; }
+
+  .hero-tag {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .hero-tag::before {
+    content: '';
+    display: block;
+    width: 2rem;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    line-height: 1.05;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent2);
+  }
+
+  .hero-desc {
+    font-size: 1.05rem;
+    color: var(--muted);
+    max-width: 520px;
+    margin-bottom: 2.5rem;
+    line-height: 1.8;
+  }
+
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.75rem;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    transition: opacity 0.2s, transform 0.2s;
+    border-radius: 2px;
+  }
+  .hero-cta:hover { opacity: 0.85; transform: translateY(-1px); }
+
+  /* ── Section ── */
+  section {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 6rem 3rem;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 4vw, 3rem);
+    margin-bottom: 3rem;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Blog Card ── */
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .blog-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    text-decoration: none;
+    color: var(--text);
+    display: block;
+    transition: border-color 0.2s, transform 0.2s;
+    border-radius: 4px;
+  }
+  .blog-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+  }
+
+  .card-tag {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--accent2);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .card-title {
+    font-family: var(--serif);
+    font-size: 1.4rem;
+    line-height: 1.25;
+    margin-bottom: 0.75rem;
+  }
+
+  .card-desc {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .card-date {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 1.5rem;
+    opacity: 0.6;
+  }
+
+  /* ── Divider ── */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0 3rem;
+  }
+
+  /* ── Footer ── */
+  footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 3rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Fade In ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .hero-inner > * {
+    animation: fadeUp 0.7s ease both;
+  }
+  .hero-inner > *:nth-child(1) { animation-delay: 0.1s; }
+  .hero-inner > *:nth-child(2) { animation-delay: 0.2s; }
+  .hero-inner > *:nth-child(3) { animation-delay: 0.3s; }
+  .hero-inner > *:nth-child(4) { animation-delay: 0.4s; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">yihang.hu</div>
+  <div class="nav-links">
+    <a href="#blog">Blog</a>
+    <a href="#about">About</a>
+    <a href="https://github.com/YihangHu2004" target="_blank">GitHub</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">UC Berkeley · Data Science</div>
+    <h1>Yihang Hu<br><em>Data &amp; ML</em></h1>
+    <p class="hero-desc">
+      Student researcher at SUStech exploring machine learning,
+      big data systems, and statistical analysis. Writing about what I build and learn.
+    </p>
+    <a href="#blog" class="hero-cta">Read the Blog →</a>
+  </div>
+</div>
+
+<hr>
+
+<section id="blog">
+  <div class="section-label">Writing</div>
+  <h2>Latest Posts</h2>
+  <div class="blog-grid">
+
+    <a class="blog-card" href="survival-analysis.html">
+      <div class="card-tag">Big Data · Statistics</div>
+      <div class="card-title">Survival Analysis for Customer Churn with PySpark</div>
+      <p class="card-desc">
+        Applying Kaplan-Meier, Cox Proportional Hazards, and AFT models
+        to IBM Telco data to predict churn and compute customer lifetime value.
+      </p>
+      <div class="card-date">April 2026</div>
+    </a>
+
+    <a class="blog-card" href="#">
+      <div class="card-tag">Machine Learning</div>
+      <div class="card-title">Fine-tuning Qwen3 for Mathematical Reasoning</div>
+      <p class="card-desc">
+        CPT → SFT → Rejection Sampling pipeline on a 100k-sample math dataset,
+        targeting sub-1B parameter efficiency.
+      </p>
+      <div class="card-date">March 2026</div>
+    </a>
+
+    <a class="blog-card" href="#">
+      <div class="card-tag">Clinical AI</div>
+      <div class="card-title">Diabetes Risk Analysis with OpenClaw &amp; PySpark</div>
+      <p class="card-desc">
+        Using an AI agent framework to analyze 253k patient records,
+        uncovering key diabetes risk factors via Spark SQL and DataFrame APIs.
+      </p>
+      <div class="card-date">April 2026</div>
+    </a>
+
+  </div>
+</section>
+
+<hr>
+
+<section id="about">
+  <div class="section-label">About</div>
+  <h2>Who I Am</h2>
+  <p style="max-width:600px; color: var(--muted); font-size:1rem; line-height:1.9;">
+    I'm a student at UC Berkeley studying data science, with hands-on experience
+    in ML engineering, distributed computing with PySpark, and statistical modeling.
+    I enjoy building systems that turn messy data into clear insights.
+  </p>
+</section>
+
+<footer>
+  © 2026 Yihang Hu · Built with GitHub Pages
+</footer>
+
+</body>
+</html>

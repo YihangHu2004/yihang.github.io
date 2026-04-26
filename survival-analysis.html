@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Survival Analysis for Customer Churn · Yihang Hu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --border: #1e1e2e;
+    --accent: #7c6af7;
+    --accent2: #f7a76c;
+    --text: #e8e6f0;
+    --muted: #6b6880;
+    --serif: 'DM Serif Display', serif;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 3rem;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--accent);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+  }
+
+  .nav-back {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    transition: color 0.2s;
+  }
+  .nav-back:hover { color: var(--text); }
+
+  /* ── Article Layout ── */
+  .article-wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 8rem 2rem 6rem;
+  }
+
+  /* ── Header ── */
+  .post-tag {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--accent2);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+  }
+
+  .post-title {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.25rem;
+  }
+
+  .post-meta {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    padding-bottom: 2.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 3rem;
+  }
+
+  /* ── Stats Bar ── */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 3.5rem;
+  }
+
+  .stat-item {
+    background: var(--surface);
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    color: var(--accent);
+    display: block;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ── Prose ── */
+  .prose h2 {
+    font-family: var(--serif);
+    font-size: 1.75rem;
+    margin: 3rem 0 1rem;
+    letter-spacing: -0.01em;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .prose h3 {
+    font-family: var(--sans);
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--accent2);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    margin: 2rem 0 0.75rem;
+  }
+
+  .prose p {
+    font-size: 1rem;
+    color: #c8c6d6;
+    margin-bottom: 1.25rem;
+    line-height: 1.85;
+  }
+
+  .prose strong { color: var(--text); font-weight: 500; }
+
+  .prose code {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.1em 0.4em;
+    border-radius: 2px;
+    color: var(--accent2);
+  }
+
+  .prose pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 1.5rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+  }
+
+  .prose pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #a8b4d8;
+    font-size: 0.82rem;
+    line-height: 1.7;
+  }
+
+  /* ── Table ── */
+  .prose table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.88rem;
+  }
+
+  .prose th {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--accent);
+    text-align: left;
+  }
+
+  .prose td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: #c8c6d6;
+  }
+
+  .prose tr:last-child td { border-bottom: none; }
+
+  /* ── Callout ── */
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    padding: 1.25rem 1.5rem;
+    border-radius: 4px;
+    margin: 2rem 0;
+    font-size: 0.92rem;
+    color: #c8c6d6;
+  }
+
+  .callout strong {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 0.5rem;
+  }
+
+  /* ── Footer ── */
+  footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 3rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .article-wrap { animation: fadeUp 0.6s ease both; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">yihang.hu</a>
+  <a class="nav-back" href="index.html">← Back</a>
+</nav>
+
+<div class="article-wrap">
+
+  <div class="post-tag">Big Data · Survival Analysis · PySpark</div>
+  <h1 class="post-title">Survival Analysis for Customer Churn with PySpark</h1>
+  <div class="post-meta">Yihang Hu &nbsp;·&nbsp; April 2026 &nbsp;·&nbsp; UC Berkeley</div>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <span class="stat-num">7,043</span>
+      <span class="stat-label">Customers</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">46.4%</span>
+      <span class="stat-label">Churn Rate</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">56 mo</span>
+      <span class="stat-label">Median Survival</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">0.64</span>
+      <span class="stat-label">C-index</span>
+    </div>
+  </div>
+
+  <div class="prose">
+
+    <h2>Overview</h2>
+    <p>
+      Survival analysis is a branch of statistics focused on modeling the time until an event occurs.
+      Originally developed for clinical settings to study time-to-death, it has since been applied
+      broadly to customer retention, equipment failure, and subscription churn.
+    </p>
+    <p>
+      In this project, I apply four survival analysis methods to the
+      <strong>IBM Telco Customer Churn dataset</strong> using PySpark and the lifelines library,
+      ultimately building a Customer Lifetime Value (CLV) model.
+    </p>
+
+    <div class="callout">
+      <strong>Dataset</strong>
+      IBM Telco Customer Churn — 7,043 records, 21 features. Filtered to month-to-month internet
+      subscribers (3,351 records, 46.4% churn rate) for this analysis. Source:
+      databricks-industry-solutions/survival-analysis.
+    </div>
+
+    <h2>Data Preprocessing</h2>
+    <p>
+      The raw dataset was processed into a Silver table by filtering to month-to-month contracts
+      and internet subscribers, converting the churn column to a binary integer, and cleaning
+      inconsistent categorical values like <code>"No internet service"</code>.
+    </p>
+
+    <pre><code>silver_df = (
+  bronze_df
+  .withColumn('churn', when(col('churnString')=='Yes', 1).otherwise(0))
+  .filter(col('contract') == 'Month-to-month')
+  .filter(col('internetService') != 'No')
+)</code></pre>
+
+    <table>
+      <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Total records</td><td>3,351</td></tr>
+        <tr><td>Churned customers</td><td>1,556 (46.4%)</td></tr>
+        <tr><td>Median tenure</td><td>13 months</td></tr>
+        <tr><td>Mean monthly charges</td><td>$73.59</td></tr>
+        <tr><td>Fiber optic churn rate</td><td>54.6%</td></tr>
+        <tr><td>DSL churn rate</td><td>32.2%</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Method 1 — Kaplan-Meier</h2>
+    <p>
+      The Kaplan-Meier estimator is a non-parametric method that computes the survival function
+      without assuming any underlying distribution. It handles right-censored data naturally —
+      customers still active at observation end are counted as censored.
+    </p>
+
+    <pre><code>from lifelines import KaplanMeierFitter
+
+kmf = KaplanMeierFitter()
+kmf.fit(silver_pd['tenure'], event_observed=silver_pd['churn'])
+kmf.plot_survival_function()</code></pre>
+
+    <p>
+      The overall <strong>median survival time is 56 months</strong>. Log-rank tests revealed
+      that <strong>techSupport</strong>, <strong>onlineSecurity</strong>, and
+      <strong>dependents</strong> have highly significant effects on survival (p &lt; 0.01),
+      while gender shows no significant difference.
+    </p>
+
+    <h2>Method 2 — Cox Proportional Hazards</h2>
+    <p>
+      The Cox PH model is a semi-parametric approach that quantifies the effect of each covariate
+      via a hazard ratio (HR). An HR &gt; 1 indicates increased churn risk; HR &lt; 1 means protection.
+    </p>
+
+    <table>
+      <thead><tr><th>Covariate</th><th>Hazard Ratio</th><th>Interpretation</th></tr></thead>
+      <tbody>
+        <tr><td>onlineBackup_Yes</td><td>0.456</td><td>54% lower churn risk</td></tr>
+        <tr><td>techSupport_Yes</td><td>0.529</td><td>47% lower churn risk</td></tr>
+        <tr><td>dependents_Yes</td><td>0.726</td><td>27% lower churn risk</td></tr>
+        <tr><td>internetService_Fiber</td><td>1.217</td><td>22% higher churn risk</td></tr>
+        <tr><td>paperlessBilling_Yes</td><td>1.157</td><td>16% higher churn risk</td></tr>
+      </tbody>
+    </table>
+
+    <p>
+      The model achieved a <strong>C-index of 0.6425</strong>, indicating meaningful discriminative
+      ability to separate high and low risk customers.
+    </p>
+
+    <h2>Method 3 — AFT Weibull (Spark MLlib)</h2>
+    <p>
+      The Accelerated Failure Time model parameterizes how covariates stretch or compress
+      the time axis. I implemented this using Spark MLlib's
+      <code>AFTSurvivalRegression</code> with a full feature pipeline for distributed training.
+    </p>
+
+    <pre><code>from pyspark.ml.regression import AFTSurvivalRegression
+from pyspark.ml import Pipeline
+
+aft = AFTSurvivalRegression(
+    featuresCol='features',
+    labelCol='tenure',
+    censorCol='churn_censor',
+    maxIter=200
+)
+pipeline = Pipeline(stages=[indexers, encoder, assembler, aft])
+model = pipeline.fit(train_df)</code></pre>
+
+    <p>
+      Test set RMSE: <strong>81.46 months</strong>. The negative R² suggests the Weibull
+      distribution is not ideal for this dataset's survival pattern, but the distributed
+      pipeline demonstrates clear engineering value at scale.
+    </p>
+
+    <h2>Method 4 — Log-Logistic AFT</h2>
+    <p>
+      The Log-Logistic AFT model was validated using a Log-Odds plot. Parallel, roughly linear
+      curves confirmed that the proportional odds assumption holds.
+      Key acceleration factors: <strong>onlineSecurity</strong> (AF = 2.55),
+      <strong>techSupport</strong> (AF = 2.10), <strong>partner</strong> (AF = 2.04).
+    </p>
+
+    <h2>Customer Lifetime Value (CLV)</h2>
+    <p>
+      Using Cox-predicted monthly survival probabilities and a 10% annual discount rate,
+      I computed 36-month NPV for two customer archetypes:
+    </p>
+
+    <table>
+      <thead><tr><th>Customer Type</th><th>Profile</th><th>CLV Trend</th></tr></thead>
+      <tbody>
+        <tr><td>High Risk</td><td>Fiber + Paperless, $75/mo</td><td>Rapid early decline</td></tr>
+        <tr><td>Low Risk</td><td>Dependents + Backup + Support, $45/mo</td><td>Sustained long-term</td></tr>
+      </tbody>
+    </table>
+
+    <p>
+      Despite higher monthly revenue, high-risk customers yield lower cumulative CLV due to
+      early churn. The <strong>12-month CLV serves as a rational cap for customer acquisition cost</strong>.
+    </p>
+
+    <h2>Model Comparison</h2>
+
+    <table>
+      <thead><tr><th>Method</th><th>Type</th><th>Key Metric</th><th>Best Use</th></tr></thead>
+      <tbody>
+        <tr><td>Kaplan-Meier</td><td>Non-parametric</td><td>Median = 56 mo</td><td>Exploratory analysis</td></tr>
+        <tr><td>Cox PH</td><td>Semi-parametric</td><td>C-index = 0.64</td><td>Interpretation &amp; CLV</td></tr>
+        <tr><td>AFT Weibull (Spark)</td><td>Fully parametric</td><td>RMSE = 81.46</td><td>Distributed prediction</td></tr>
+        <tr><td>Log-Logistic AFT</td><td>Fully parametric</td><td>AIC = 13,812</td><td>Non-PH scenarios</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Key Takeaways</h2>
+    <p>
+      <strong>Online backup and tech support are the strongest retention levers</strong>,
+      reducing churn risk by 54% and 47% respectively. Fiber optic customers churn at 54.6%
+      versus 32.2% for DSL, yet their higher monthly charges do not compensate for lower CLV.
+    </p>
+    <p>
+      The most actionable finding: proactively offering tech support and online backup packages
+      to new fiber customers in their first 3 months could substantially shift the survival curve
+      upward, improving both retention and lifetime value simultaneously.
+    </p>
+
+    <div class="callout">
+      <strong>Code</strong>
+      Full PySpark implementation available at
+      <a href="https://github.com/YihangHu2004" style="color: var(--accent);">github.com/YihangHu2004</a>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  © 2026 Yihang Hu · Built with GitHub Pages
+</footer>
+
+</body>
+</html>
